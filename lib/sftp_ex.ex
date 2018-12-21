@@ -2,10 +2,8 @@ defmodule SftpEx do
   @moduledoc """
   Functions for transferring and managing files through SFTP
   """
-  alias SFTP.TransferService
-  alias SFTP.ManagementService
-  alias SFTP.ConnectionService
-  alias SFTP.AccessService
+  alias SFTP.{AccessService, ConnectionService, ManagementService, TransferService}
+  alias SFTP.Connection, as: Conn
 
   @default_opts [
     user_interaction: false,
@@ -15,49 +13,50 @@ defmodule SftpEx do
   ]
 
   @doc """
-    Download a file given the connection and remote_path
-    Returns {:ok, data}, {:error, reason}
+  Download a file given the connection and remote_path
+  Returns {:ok, data}, {:error, reason}
   """
+  @spec download(Conn.t(), Path.t()) :: {:ok | :error, any()}
   def download(connection, remote_path) do
     TransferService.download(connection, remote_path)
   end
 
   @doc """
-    Uploads data to a remote path via SFTP
-    Returns :ok, or {:error, reason}
+  Upload a local file to a remote path
+  Returns :ok, or {:error, reason}
   """
+  @spec upload(Conn.t(), Path.t(), Path.t()) :: :ok | {:error, any()}
   def upload(connection, remote_path, file_handle) do
     TransferService.upload(connection, remote_path, file_handle)
   end
 
   @doc """
-    Creates a Connection struct if the connection is successful,
-    else will return {:error, reason}
+  Creates a Connection struct if the connection is successful,
+  else will return {:error, reason}
 
-    A connection struct will contain the
-      channel_pid = pid()
-      connection_pid = pid()
-      host = string()
-      port = integer()
-      opts = [{Option, Value}]
+  A connection struct will contain the
+    channel_pid = pid()
+    connection_pid = pid()
+    host = string()
+    port = integer()
+    opts = [{Option, Value}]
 
-    Default values are set for the following options:
+  Default values are set for the following options:
 
-    user_interaction: false,
-    silently_accept_hosts: true,
-    rekey_limit: 1000000000000,
-    port: 22
+  user_interaction: false,
+  silently_accept_hosts: true,
+  rekey_limit: 1000000000000,
+  port: 22
 
-    ***NOTE: The only required option is ':host'
+  ***NOTE: The only required option is ':host'
 
-    The rekey_limit value is set at a large amount because the Erlang library creates
-    an exception when the server is negotiating a rekey. Setting the value at a high number
-    of bytes will avoid a rekey event occurring.
+  The rekey_limit value is set at a large amount because the Erlang library creates
+  an exception when the server is negotiating a rekey. Setting the value at a high number
+  of bytes will avoid a rekey event occurring.
 
-    Other available options can be found at http://erlang.org/doc/man/ssh.html#connect-3
-
-    Returns {:ok, Connection}, or {:error, reason}
+  Other available options can be found at http://erlang.org/doc/man/ssh.html#connect-3
   """
+  @spec connect(Keyword.t()) :: {:ok, Conn.t()} | {:error, any()}
   def connect(opts) do
     opts = @default_opts |> Keyword.merge(opts)
     own_keys = [:host, :port]
@@ -66,91 +65,62 @@ defmodule SftpEx do
   end
 
   @doc """
-    Creates an SFTP stream by opening an SFTP connection and opening a file
-    in read or write mode.
+  Creates an SFTP stream by opening an SFTP connection and opening a file
+  in read or write mode.
 
-    Below is an example of reading a file from a server.
+  Below is an example of reading a file from a server.
 
-    An example of writing a file to a server is the following.
+  An example of writing a file to a server is the following.
 
-    stream = File.stream!("filename.txt")
-        |> Stream.into(SftpEx.stream!(connection,"/home/path/filename.txt"))
-        |> Stream.run
+  stream = File.stream!("filename.txt")
+      |> Stream.into(SftpEx.stream!(connection,"/home/path/filename.txt"))
+      |> Stream.run
 
-    This follows the same pattern as Elixir IO streams so a file can be transferred
-    from one server to another via SFTP as follows.
+  This follows the same pattern as Elixir IO streams so a file can be transferred
+  from one server to another via SFTP as follows.
 
-    stream = SftpEx.stream!(connection,"/home/path/filename.txt")
-    |> Stream.into(SftpEx.stream!(connection2,"/home/path/filename.txt"))
-    |> Stream.run
-
-    Types:
-     connection = Connection
-     remote_path = string()
-
-    Returns SFTP.Stream
+  stream = SftpEx.stream!(connection,"/home/path/filename.txt")
+  |> Stream.into(SftpEx.stream!(connection2,"/home/path/filename.txt"))
+  |> Stream.run
   """
+  @spce stream!(Conn.t(), Path.t(), non_neg_integer()) :: SFTP.Stream.t()
   def stream!(connection, remote_path, byte_size \\ 32768) do
     SFTP.Stream.__build__(connection, remote_path, byte_size)
   end
 
   @doc """
-    Opens a file or directory given a connection and remote_path
-
-   Types:
-     connection = Connection
-     handle = handle()
-     remote_path = string()
-
-    Returns {:ok, handle}, or {:error, reason}
+  Opens a file or directory given a connection and remote_path
   """
+  @spec open(Conn.t(), Path.t()) :: {:ok | :error, any()}
   def open(connection, remote_path) do
     AccessService.open(connection, remote_path, :read)
   end
 
   @doc """
-    Lists the contents of a directory given a connection a handle or remote path
-
-    Types:
-     connection = Connection
-     handle = handle()
-     remote_path = string()
-
-    Returns {:ok, [Filename]}, or {:error, reason}
+  Lists the contents of a directory given a connection a handle or remote path
   """
+  @spec ls(Conn.t(), Path.t()) :: {:ok, [Path.t()]} | {:error, any()}
   def ls(connection, remote_path) do
     ManagementService.list_files(connection, remote_path)
   end
 
   @doc """
-    Lists the contents of a directory given a connection a handle or remote path
-    Types:
-     connection = Connection
-     remote_path = string()
-
-    Returns :ok, or {:error, reason}
+  Lists the contents of a directory given a connection a handle or remote path
   """
+  @spec mkdir(Conn.t(), Path.t()) :: :ok | {:error, any()}
   def mkdir(connection, remote_path) do
     ManagementService.make_directory(connection, remote_path)
   end
 
   @doc """
-   Types:
-     connection = Connection
-     remote_path = string() or handle()
-
-     Returns {:ok, File.Stat}, or {:error, reason}
+  Stat a file.
   """
   def lstat(connection, remote_path) do
     AccessService.file_info(connection, remote_path)
   end
 
   @doc """
-   Types:
-     connection = Connection
-     remote_path = handle() or string()
-
-   Returns size as {:ok, integer()} or {:error, reason}
+  Determine the size of a file
   """
   def size(connection, remote_path) do
     case AccessService.file_info(connection, remote_path) do
@@ -160,14 +130,7 @@ defmodule SftpEx do
   end
 
   @doc """
-   Gets the type given a remote path.
-   Types:
-     connection = Connection
-     remote_path = handle() or string()
-
-   type = :device | :directory | :regular | :other
-
-   Returns {:ok, type}, or {:error, reason}
+  Gets the type given a remote path.
   """
   def get_type(connection, remote_path) do
     case AccessService.file_info(connection, remote_path) do
@@ -178,49 +141,27 @@ defmodule SftpEx do
 
   @doc """
   Stops the SSH application
-
-  Types:
-    connection = Connection
-
-  Returns :ok
   """
   def disconnect(connection) do
     ConnectionService.disconnect(connection)
   end
 
   @doc """
-    Removes a file from the server.
-    Types:
-      connection = Connection
-      file = string()
-
-    Returns :ok, or {:error, reason}
+  Removes a file from the server.
   """
   def rm(connection, file) do
     ManagementService.remove_file(connection, file)
   end
 
   @doc """
-    Removes a directory and all files within it
-    Types:
-      connection = Connection
-      remote_path = string()
-
-    Returns :ok, or {:error, reason}
+  Removes a directory and all files within it
   """
   def rm_dir(connection, remote_path) do
     ManagementService.remove_directory(connection, remote_path)
   end
 
   @doc """
-    Renames a file or directory
-
-    Types:
-      connection = Connection
-      old_name = string()
-      new_name = string()
-
-    Returns {:ok, handle}, or {:error, reason}
+  Renames a file or directory
   """
   def rename(connection, old_name, new_name) do
     ManagementService.rename(connection, old_name, new_name)
