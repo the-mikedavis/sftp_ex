@@ -1,7 +1,7 @@
 defmodule SFTP.Stream do
-  @moduledoc "
+  @moduledoc """
   A stream to download/upload a file from a server through SFTP
-  "
+  """
   alias SFTP.AccessService, as: AccessSvc
   alias SFTP.TransferService, as: TransferSvc
 
