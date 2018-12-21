@@ -54,8 +54,4 @@ defmodule SFTP.AccessService do
       e -> S.handle_error(e)
     end
   end
-
-  defp create_file(connection, path) do
-    open_file(connection, path, [:creat])
-  end
 end

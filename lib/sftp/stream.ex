@@ -15,10 +15,7 @@ defmodule SFTP.Stream do
   end
 
   defimpl Collectable do
-    def into(
-          %{connection: connection, path: path, byte_length: byte_length} =
-            stream
-        ) do
+    def into(%{connection: connection, path: path} = stream) do
       case AccessSvc.open_file(connection, path, [:write, :binary, :creat]) do
         {:error, reason} -> {:error, reason}
         {:ok, handle} -> {:ok, into(connection, handle, stream)}
@@ -61,6 +58,10 @@ defmodule SFTP.Stream do
       close_function = &AccessSvc.close(connection, &1)
 
       Stream.resource(start_function, next_function, close_function).(acc, fun)
+    end
+
+    def slice(_steram) do
+      {:error, __MODULE__}
     end
 
     def count(_stream) do

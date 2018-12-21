@@ -71,6 +71,20 @@ defmodule SftpEx do
   end
 
   @doc """
+  Open a connection.
+
+  If the connection does not succeed, raises an error.
+  """
+  @spec connect!(Keyword.t()) :: Conn.t()
+  def connect!(opts) do
+    case connect(opts) do
+      {:ok, conn} -> conn
+
+      {:error, reason} -> raise reason
+    end
+  end
+
+  @doc """
   Creates an SFTP stream by opening an SFTP connection and opening a file
   in read or write mode.
 
@@ -89,7 +103,7 @@ defmodule SftpEx do
   |> Stream.into(SftpEx.stream!(connection2,"/home/path/filename.txt"))
   |> Stream.run
   """
-  @spce stream!(Conn.t(), Path.t(), non_neg_integer()) :: SFTP.Stream.t()
+  @spec stream!(Conn.t(), Path.t(), non_neg_integer()) :: SFTP.Stream.t()
   def stream!(connection, remote_path, byte_size \\ 32768) do
     SFTP.Stream.__build__(connection, remote_path, byte_size)
   end
