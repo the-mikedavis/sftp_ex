@@ -6,10 +6,18 @@ defmodule SFTP.AccessServiceTest do
   @host "testhost"
   @port 22
   @opts []
-  @test_connection SFTP.Connection.__build__(self(), self(), @host, @port, @opts)
+  @test_connection SFTP.Connection.__build__(
+                     self(),
+                     self(),
+                     @host,
+                     @port,
+                     @opts
+                   )
 
   test "open" do
-    {:ok, handle} = AccessService.open(@test_connection, "test/data/test_file.txt", :read)
+    {:ok, handle} =
+      AccessService.open(@test_connection, "test/data/test_file.txt", :read)
+
     assert :erlang.binary_to_term(SFTP.ServiceMock.binary_data()) == handle
   end
 
@@ -24,10 +32,12 @@ defmodule SFTP.AccessServiceTest do
   end
 
   test "close file" do
-    assert :ok == AccessService.close(@test_connection, "test/data/test_file.txt")
+    assert :ok ==
+             AccessService.close(@test_connection, "test/data/test_file.txt")
   end
 
   test "close non-existent file" do
-    assert {:error, "Error closing file"} == AccessService.close(@test_connection, "bad-file.txt")
+    assert {:error, "Error closing file"} ==
+             AccessService.close(@test_connection, "bad-file.txt")
   end
 end

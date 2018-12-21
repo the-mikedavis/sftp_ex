@@ -26,7 +26,14 @@ defmodule SFTP.ConnectionService do
 
     case @sftp.start_channel(host, port, opts) do
       {:ok, channel_pid, connection_ref} ->
-        {:ok, SFTP.Connection.__build__(channel_pid, connection_ref, host, port, opts)}
+        {:ok,
+         SFTP.Connection.__build__(
+           channel_pid,
+           connection_ref,
+           host,
+           port,
+           opts
+         )}
 
       e ->
         S.handle_error(e)

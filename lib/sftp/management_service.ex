@@ -60,7 +60,9 @@ defmodule SFTP.ManagementService do
           :directory ->
             case @sftp.list_dir(connection, remote_path) do
               {:ok, file_list} ->
-                Enum.filter(file_list, fn file_name -> file_name != '.' && file_name != '..' end)
+                Enum.filter(file_list, fn file_name ->
+                  file_name != '.' && file_name != '..'
+                end)
 
               e ->
                 S.handle_error(e)

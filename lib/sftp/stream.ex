@@ -15,7 +15,10 @@ defmodule SFTP.Stream do
   end
 
   defimpl Collectable do
-    def into(%{connection: connection, path: path, byte_length: byte_length} = stream) do
+    def into(
+          %{connection: connection, path: path, byte_length: byte_length} =
+            stream
+        ) do
       case AccessSvc.open_file(connection, path, [:write, :binary, :creat]) do
         {:error, reason} -> {:error, reason}
         {:ok, handle} -> {:ok, into(connection, handle, stream)}
@@ -38,11 +41,18 @@ defmodule SFTP.Stream do
   end
 
   defimpl Enumerable do
-    def reduce(%{connection: connection, path: path, byte_length: byte_length}, acc, fun) do
+    def reduce(
+          %{connection: connection, path: path, byte_length: byte_length},
+          acc,
+          fun
+        ) do
       start_function = fn ->
         case AccessSvc.open(connection, path, [:read, :binary]) do
-          {:error, reason} -> raise File.Error, reason: reason, action: "stream", path: path
-          {:ok, handle} -> handle
+          {:error, reason} ->
+            raise File.Error, reason: reason, action: "stream", path: path
+
+          {:ok, handle} ->
+            handle
         end
       end
 

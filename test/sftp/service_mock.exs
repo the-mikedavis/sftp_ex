@@ -73,8 +73,11 @@ defmodule SFTP.ServiceMock do
 
   def open(_connection, path, _mode) do
     cond do
-      path == "test/data/test_file.txt" -> {:ok, :erlang.binary_to_term(binary_data())}
-      true -> {:error, "No Such File"}
+      path == "test/data/test_file.txt" ->
+        {:ok, :erlang.binary_to_term(binary_data())}
+
+      true ->
+        {:error, "No Such File"}
     end
   end
 
