@@ -1,7 +1,7 @@
-# SftpEx
+# Snipe
 
 An Elixir wrapper around the Erlang SFTP application. This allows for the use
-of Elixir Streams to transfer files via SFTP.
+of Elixir Streams to transfer files via SFTP. Forked from `mikejdorm/sftp_ex`.
 
 ## Creating a Connection
 
