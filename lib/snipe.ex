@@ -1,15 +1,10 @@
-defmodule SftpEx do
+defmodule Snipe do
   @moduledoc """
   Functions for transferring and managing files through SFTP
   """
-  alias SFTP.{
-    AccessService,
-    ConnectionService,
-    ManagementService,
-    TransferService
-  }
+  alias Snipe.Sftp.{Access, Management, Transfer, Stream}
 
-  alias SFTP.Connection, as: Conn
+  alias Snipe.Conn, as: Conn
 
   @default_opts [
     user_interaction: false,
@@ -24,7 +19,7 @@ defmodule SftpEx do
   """
   @spec download(Conn.t(), Path.t()) :: {:ok | :error, any()}
   def download(connection, remote_path) do
-    TransferService.download(connection, remote_path)
+    Transfer.download(connection, remote_path)
   end
 
   @doc """
@@ -33,7 +28,7 @@ defmodule SftpEx do
   """
   @spec upload(Conn.t(), Path.t(), Path.t()) :: :ok | {:error, any()}
   def upload(connection, remote_path, file_handle) do
-    TransferService.upload(connection, remote_path, file_handle)
+    Transfer.upload(connection, remote_path, file_handle)
   end
 
   @doc """
@@ -67,7 +62,7 @@ defmodule SftpEx do
     opts = @default_opts |> Keyword.merge(opts)
     own_keys = [:host, :port]
     ssh_opts = opts |> Enum.filter(fn {k, _} -> not (k in own_keys) end)
-    ConnectionService.connect(opts[:host], opts[:port], ssh_opts)
+    Conn.connect(opts[:host], opts[:port], ssh_opts)
   end
 
   @doc """
@@ -92,19 +87,19 @@ defmodule SftpEx do
   An example of writing a file to a server is the following.
 
   stream = File.stream!("filename.txt")
-      |> Stream.into(SftpEx.stream!(connection,"/home/path/filename.txt"))
+      |> Stream.into(Snipe.stream!(connection,"/home/path/filename.txt"))
       |> Stream.run
 
   This follows the same pattern as Elixir IO streams so a file can be transferred
   from one server to another via SFTP as follows.
 
-  stream = SftpEx.stream!(connection,"/home/path/filename.txt")
-  |> Stream.into(SftpEx.stream!(connection2,"/home/path/filename.txt"))
+  stream = Snipe.stream!(connection,"/home/path/filename.txt")
+  |> Stream.into(Snipe.stream!(connection2,"/home/path/filename.txt"))
   |> Stream.run
   """
-  @spec stream!(Conn.t(), Path.t(), non_neg_integer()) :: SFTP.Stream.t()
+  @spec stream!(Conn.t(), Path.t(), non_neg_integer()) :: Stream.t()
   def stream!(connection, remote_path, byte_size \\ 32768) do
-    %SFTP.Stream{
+    %Stream{
       connection: connection,
       path: remote_path,
       byte_length: byte_size
@@ -116,7 +111,7 @@ defmodule SftpEx do
   """
   @spec open(Conn.t(), Path.t()) :: {:ok | :error, any()}
   def open(connection, remote_path) do
-    AccessService.open(connection, remote_path, :read)
+    Access.open(connection, remote_path, :read)
   end
 
   @doc """
@@ -124,7 +119,7 @@ defmodule SftpEx do
   """
   @spec ls(Conn.t(), Path.t()) :: {:ok, [Path.t()]} | {:error, any()}
   def ls(connection, remote_path) do
-    ManagementService.list_files(connection, remote_path)
+    Management.list_files(connection, remote_path)
   end
 
   @doc """
@@ -132,21 +127,21 @@ defmodule SftpEx do
   """
   @spec mkdir(Conn.t(), Path.t()) :: :ok | {:error, any()}
   def mkdir(connection, remote_path) do
-    ManagementService.make_directory(connection, remote_path)
+    Management.make_directory(connection, remote_path)
   end
 
   @doc """
   Stat a file.
   """
   def lstat(connection, remote_path) do
-    AccessService.file_info(connection, remote_path)
+    Access.file_info(connection, remote_path)
   end
 
   @doc """
   Determine the size of a file
   """
   def size(connection, remote_path) do
-    case AccessService.file_info(connection, remote_path) do
+    case Access.file_info(connection, remote_path) do
       {:error, reason} -> {:error, reason}
       {:ok, info} -> info.size
     end
@@ -156,7 +151,7 @@ defmodule SftpEx do
   Gets the type given a remote path.
   """
   def get_type(connection, remote_path) do
-    case AccessService.file_info(connection, remote_path) do
+    case Access.file_info(connection, remote_path) do
       {:error, reason} -> {:error, reason}
       {:ok, info} -> info.type
     end
@@ -166,38 +161,27 @@ defmodule SftpEx do
   Stops the SSH application
   """
   def disconnect(connection) do
-    ConnectionService.disconnect(connection)
+    Conn.disconnect(connection)
   end
 
   @doc """
   Removes a file from the server.
   """
   def rm(connection, file) do
-    ManagementService.remove_file(connection, file)
+    Management.remove_file(connection, file)
   end
 
   @doc """
   Removes a directory and all files within it
   """
   def rm_dir(connection, remote_path) do
-    ManagementService.remove_directory(connection, remote_path)
+    Management.remove_directory(connection, remote_path)
   end
 
   @doc """
   Renames a file or directory
   """
   def rename(connection, old_name, new_name) do
-    ManagementService.rename(connection, old_name, new_name)
-  end
-end
-
-defmodule SftpEx.Helpers do
-  require Logger
-
-  @moduledoc false
-
-  def handle_error(e) do
-    Logger.error("#{inspect(e)}")
-    e
+    Management.rename(connection, old_name, new_name)
   end
 end

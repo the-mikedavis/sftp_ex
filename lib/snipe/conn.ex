@@ -1,16 +1,21 @@
-defmodule SFTP.ConnectionService do
-  require SftpEx.Helpers, as: S
+defmodule Snipe.Conn do
+  require Snipe.Helpers, as: Helpers
 
   @moduledoc """
-  Provides methods related to starting and stopping an SFTP connection
+  Connection related utilities
   """
-  @ssh Application.get_env(:sftp_ex, :ssh_service, SSH.Service)
-  @sftp Application.get_env(:sftp_ex, :sftp_service, SFTP.Service)
+
+  defstruct channel_pid: nil, connection_ref: nil, host: nil, port: 22, opts: []
+
+  @type t :: %__MODULE__{}
+
+  @ssh Application.get_env(:snipe, :ssh_service, Snipe.Ssh)
+  @sftp Application.get_env(:snipe, :sftp_service, Snipe.Sftp)
 
   @doc """
   Stops a SFTP channel and closes the SSH connection.
   """
-  @spec disconnect(SFTP.Connection.t()) :: :ok
+  @spec disconnect(t()) :: :ok
   def disconnect(connection) do
     @sftp.stop_channel(connection)
     @ssh.close_connection(connection)
@@ -20,14 +25,14 @@ defmodule SFTP.ConnectionService do
   Creates an SFTP connection
   """
   @spec connect(charlist(), integer(), Keyword.t()) ::
-          {:ok, SFTP.Connection.t()} | {:error, any()}
+          {:ok, t()} | {:error, any()}
   def connect(host, port, opts) do
     @ssh.start()
 
     case @sftp.start_channel(host, port, opts) do
       {:ok, channel_pid, connection_ref} ->
         {:ok,
-         %SFTP.Connection{
+         %__MODULE__{
            channel_pid: channel_pid,
            connection_ref: connection_ref,
            host: host,
@@ -36,7 +41,7 @@ defmodule SFTP.ConnectionService do
          }}
 
       e ->
-        S.handle_error(e)
+        Helpers.handle_error(e)
     end
   end
 end

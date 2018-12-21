@@ -9,7 +9,7 @@ The following is an example of creating a connection with a username and
 password.
 
 ```elixir
-{:ok, conn} = SftpEx.connect([host: 'somehost', user: 'someuser', password: 'somepassword'])
+{:ok, conn} = Snipe.connect([host: 'somehost', user: 'someuser', password: 'somepassword'])
 ```
 
 Other connection arguments can be found in the [Erlang
@@ -22,22 +22,22 @@ An example of writing a file to a server is the following.
 
 ```elixir
 stream = File.stream!("filename.txt")
-    |> Stream.into(SftpEx.stream!(connection,"/home/path/filename.txt"))
+    |> Stream.into(Snipe.stream!(connection,"/home/path/filename.txt"))
     |> Stream.run
 ```
 
 A file can be copied from remote to local as follows.
 
 ```elixir
-SftpEx.stream!(connection,"test2.csv") |> Stream.into(File.stream!("filename.txt")) |> Stream.run
+Snipe.stream!(connection,"test2.csv") |> Stream.into(File.stream!("filename.txt")) |> Stream.run
 ```
 
 This follows the same pattern as Elixir IO streams so a file can be transferred
 from one server to another via SFTP as follows.
 
 ```elixir
-stream = SftpEx.stream!(connection,"/home/path/filename.txt")
-|> Stream.into(SftpEx.stream!(connection2,"/home/path/filename.txt"))
+stream = Snipe.stream!(connection,"/home/path/filename.txt")
+|> Stream.into(Snipe.stream!(connection2,"/home/path/filename.txt"))
 |> Stream.run
 ```
 

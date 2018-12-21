@@ -1,4 +1,4 @@
 use Mix.Config
 
-config :sftp_ex, :ssh_service, SSH.Service
-config :sftp_ex, :sftp_service, SFTP.Service
+config :snipe, :ssh_service, Snipe.Ssh
+config :snipe, :sftp_service, Snipe.Sftp
