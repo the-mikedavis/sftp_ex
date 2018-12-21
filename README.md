@@ -43,10 +43,10 @@ stream = Snipe.stream!(connection,"/home/path/filename.txt")
 
 ## Installation
 
-1. Add `sftp_ex` to your list of dependencies in `mix.exs`:
+Add `snipe` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:sftp_ex, git: "git@github.com:the-mikedavis/sftp_ex.git"}]
+  [{:snipe, git: "git@github.com:the-mikedavis/snipe.git"}]
 end
 ```
