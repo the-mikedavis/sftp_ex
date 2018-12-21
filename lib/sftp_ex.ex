@@ -2,7 +2,13 @@ defmodule SftpEx do
   @moduledoc """
   Functions for transferring and managing files through SFTP
   """
-  alias SFTP.{AccessService, ConnectionService, ManagementService, TransferService}
+  alias SFTP.{
+    AccessService,
+    ConnectionService,
+    ManagementService,
+    TransferService
+  }
+
   alias SFTP.Connection, as: Conn
 
   @default_opts [
