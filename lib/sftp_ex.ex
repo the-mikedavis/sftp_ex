@@ -79,7 +79,6 @@ defmodule SftpEx do
   def connect!(opts) do
     case connect(opts) do
       {:ok, conn} -> conn
-
       {:error, reason} -> raise reason
     end
   end

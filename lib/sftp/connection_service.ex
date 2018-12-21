@@ -19,7 +19,8 @@ defmodule SFTP.ConnectionService do
   @doc """
   Creates an SFTP connection
   """
-  @spec connect(charlist(), integer(), Keyword.t()) :: {:ok, SFTP.Connection.t()} | {:error, any()}
+  @spec connect(charlist(), integer(), Keyword.t()) ::
+          {:ok, SFTP.Connection.t()} | {:error, any()}
   def connect(host, port, opts) do
     @ssh.start()
 
