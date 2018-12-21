@@ -6,13 +6,13 @@ defmodule SFTP.ManagementServiceTest do
   @host "testhost"
   @port 22
   @opts []
-  @test_connection SFTP.Connection.__build__(
-                     self(),
-                     self(),
-                     @host,
-                     @port,
-                     @opts
-                   )
+  @test_connection %SFTP.Connection{
+    channel_pid: self(),
+    connection_ref: self(),
+    host: @host,
+    port: @port,
+    opts: @opts
+  }
 
   test "make directory" do
     assert :ok ==

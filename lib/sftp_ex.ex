@@ -79,6 +79,7 @@ defmodule SftpEx do
   def connect!(opts) do
     case connect(opts) do
       {:ok, conn} -> conn
+
       {:error, reason} -> raise reason
     end
   end
@@ -104,7 +105,11 @@ defmodule SftpEx do
   """
   @spec stream!(Conn.t(), Path.t(), non_neg_integer()) :: SFTP.Stream.t()
   def stream!(connection, remote_path, byte_size \\ 32768) do
-    SFTP.Stream.__build__(connection, remote_path, byte_size)
+    %SFTP.Stream{
+      connection: connection,
+      path: remote_path,
+      byte_length: byte_size
+    }
   end
 
   @doc """

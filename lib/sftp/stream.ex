@@ -9,11 +9,6 @@ defmodule SFTP.Stream do
 
   @type t :: %__MODULE__{}
 
-  @doc false
-  def __build__(connection, path, byte_length) do
-    %SFTP.Stream{connection: connection, path: path, byte_length: byte_length}
-  end
-
   defimpl Collectable do
     def into(%{connection: connection, path: path} = stream) do
       case AccessSvc.open_file(connection, path, [:write, :binary, :creat]) do

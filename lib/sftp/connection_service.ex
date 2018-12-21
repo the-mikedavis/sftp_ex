@@ -1,17 +1,16 @@
-require SftpEx.Helpers, as: S
-
 defmodule SFTP.ConnectionService do
+  require SftpEx.Helpers, as: S
+
   @moduledoc """
-    Provides methods related to starting and stopping an SFTP connection
+  Provides methods related to starting and stopping an SFTP connection
   """
   @ssh Application.get_env(:sftp_ex, :ssh_service, SSH.Service)
   @sftp Application.get_env(:sftp_ex, :sftp_service, SFTP.Service)
 
   @doc """
   Stops a SFTP channel and closes the SSH connection.
-
-  Returns :ok
   """
+  @spec disconnect(SFTP.Connection.t()) :: :ok
   def disconnect(connection) do
     @sftp.stop_channel(connection)
     @ssh.close_connection(connection)
@@ -19,21 +18,21 @@ defmodule SFTP.ConnectionService do
 
   @doc """
   Creates an SFTP connection
-  Returns {:ok, Connection}, or {:error, reason}
   """
+  @spec connect(charlist(), integer(), Keyword.t()) :: {:ok, SFTP.Connection.t()} | {:error, any()}
   def connect(host, port, opts) do
     @ssh.start()
 
     case @sftp.start_channel(host, port, opts) do
       {:ok, channel_pid, connection_ref} ->
         {:ok,
-         SFTP.Connection.__build__(
-           channel_pid,
-           connection_ref,
-           host,
-           port,
-           opts
-         )}
+         %SFTP.Connection{
+           channel_pid: channel_pid,
+           connection_ref: connection_ref,
+           host: host,
+           port: port,
+           opts: opts
+         }}
 
       e ->
         S.handle_error(e)
